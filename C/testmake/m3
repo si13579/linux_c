@@ -1,0 +1,15 @@
+OBJS=main.o tool1.o tool2.o
+CC=gcc
+
+mytool:$(OBJS)
+	$(CC) $^ -o $@
+
+main.o:main.c
+	$(CC) $^ -c -o $@
+tool1.o:tool1.c
+	$(CC) $^ -c -o $@
+tool2.o:tool2.c
+	$(CC) $^ -c -o $@
+
+clean:
+	$(RM) *.o mytool -r
