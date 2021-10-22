@@ -1,7 +1,7 @@
-all:
+all:sqstack
 
 
-llist:llist.o main.o
+sqstack:sqstack.o main.o
 	$(CC) $^ -o $@
 
 clean:
