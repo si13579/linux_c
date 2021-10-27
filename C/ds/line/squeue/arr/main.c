@@ -4,6 +4,7 @@
 #include "queue.h"
 
 int main(){
+	/*
 	queue *sq;
 	
 	datatype arr[] = {2,34,98,12};
@@ -26,7 +27,12 @@ int main(){
 	datatype tmp;
 	qu_dequeue(sq,&tmp);
 	printf("DEQUEUE:%d\n",tmp);
+*/
 
+	queue *sq;
+	sq = qu_create();
+	int i =66;
+	qu_enqueue(sq,&i);
 	qu_travel(sq);
 
 	qu_destory(sq);
