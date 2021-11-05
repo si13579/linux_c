@@ -1,0 +1,11 @@
+4 tion  is not performed, the write() function shall return zero and have
+6 the results are unspecified.
+7 On  a regular file or other file capable of seeking, the actual writing
+8 of data shall proceed from the position in the file  indicated  by  the
+9 file  offset  associated  with  fildes.  Before  successful return from
+10  write(), the file offset shall be incremented by the  number  of  bytes
+11 actually written. On a regular file, if this incremented file offset is
+12 greater than the length of the file, the length of the  file  shall  be
+13 set to this file offset.
+ the file, the length of the  file  shall  be
+13 set to this file offset.
