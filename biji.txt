@@ -1,0 +1,175 @@
+2021.11.7 17:30
+同步：sync，fsync,fdatasync
+
+sync 解除挂载时
+void sync(void);
+commit buffer cache to disk 同步buffer和cache（内核层面）
+
+fsync 
+int fsync(int fd);有指向，同步一个文件的buffer或cache
+
+int fdatasync(int fd);
+同步一个文件，只刷数据（一个文件当中有效数据），不刷亚数据（文件最后修改时间，文件属性等）
+
+
+
+fcntl - manipulate file descriptor 管理文件描述符
+文件描述符所变得魔术几乎都来源于该函数
+int fcntl(int fd,int cmd,... /* arg */);  cmd 要对文件描述符做什么样的事情 ... 要做的事情是否需要传参
+cmd由于命令不同，会造成过所传的参数不同 由于命令不同会造成这个函数的返回值不同
+
+
+
+Duplicating a file descriptor 复制一个文件描述符
+
+
+ioctl();设备相关的内容  control device
+int ioctl(int d,int request, ...);
+
+
+
+
+/dev/fd/目录：是一个虚目录，显示的是当前进程的文件描述符信息
+
+
+
+
+
+
+
+文件系统：
+
+类ls的实现，如myls 
+cmd --长格式 -短格式 非选项的传参
+
+一、目录和文件
+	
+	1、获取文件属性
+		stat通过文件路径获取属性，面对符号链接文件时获取的是所指向的目标文件的属性
+		fstat通过文件描述符获取熟悉
+		lstat面对符号链接文件时获取的是符号链接文件的属性
+
+		st_dev //ID of device containing file包含当前文件的设备id号
+		st_ino //inode number 
+		st_mode //protection 权限信息
+			文件类型分为七种
+			dcb-lsp
+			d //目录文件
+			c //字符设备文件
+			b //块设备文件
+			- //常规文件
+			l //链接文件 这里指符号链接文件 硬链接文件实际上是目录项的同义词，不会有任何表示
+			s //网络套接字文件
+			p //管道文件 在这里其实特指匿名管道 匿名管道是在磁盘上看不到的
+		st_nlink //number of hard links硬链接树
+		st_rdev //device ID (if special file)/如果拿到内容是一个设备，是设备的id号
+		st_size //total size,int bytes 总大小，以字节为单位
+		st_blksize //blcoksize for file system I/O 一个blcok（块）有多大
+		st_blocks //number of 521B blocks allocated当前这个文件占了多少个512大小的块
+		st_atime //最后一次读的时间
+		st_mtime //最后一次写的时间
+		st_ctime //最后一次亚数据修改的时间
+		命令stat可以获取文件的属性
+	
+
+
+	2、文件访问权限
+		stat
+			st_mode是一个十六位的位图，用于表示文件类型，文件访问权限及特殊权限位
+	3、umask
+		
+		0666 & ~umask
+		作用：防止产生权限过松的文件
+		
+	4、文件权限的更改chmod，fchmod
+
+	5、粘住位
+		t位
+		在内存当中保留它的痕迹，下次再装载的时候比较快
+	6、文件系统：FAT，UFS
+		文件系统：文件或数据的存储和管理
+		FAT16/32 静态存储单链表
+	7、硬链接，符号链接
+		硬链接与目录项是同义词，且建立硬链接有限制：不能给分区建立，不能给目录建立
+		符号链接优点：可跨分区，可以给目录建立
+		硬链接 ln  两个指针指向了同样的一个数据块 link ulink remove rename
+
+		符号链接 ln -s 快捷方式
+	8、utime
+		更改文件最后读时间和最后修改时间
+
+	9、目录的创建和销毁
+		mkdir
+		rmdir
+
+	10、更改当前工作路径
+		cd chdir fchdir 
+		getcwd获取当前路径
+
+	11、分析目录/读取目录内容
+		glob():解析模式/通配符
+
+		opendir();
+		closedir();
+		readdir(3);
+		rewinddir();
+		seekdir();
+		telldir();
+
+touch -- -a 创建名称为-a 的文件
+任何一个命令后面加上两个选项表示当前的选项结束
+
+
+
+
+
+二、系统数据文件和信息
+	1. /etc/passwd
+		getpwuid(); 根据用户id来查看用户相关信息
+		getpwnam(); 通过用户名来查看用户相关信息
+
+	2. /etc/group
+		getgrgid();//通过gid来查看组的相关信息
+		getgrnam();//通过组的名字来查看组的相关信息
+
+	3. /etc/shadow
+		getspnam();
+		crypt();
+		getpass();
+	4. 时间戳:time_t  char *  struct tm
+		time();//从内核当中取时间戳 （time_t类型）
+
+		time_t转换成struct_tm类型
+			gmtime();
+			localtime();
+
+		struct_tm转换成time_t
+			mktime();
+
+		struct_tm转换成格式化字符串
+			strftime();
+
+
+三、进程环境
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
