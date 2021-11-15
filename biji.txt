@@ -148,10 +148,44 @@ touch -- -a 创建名称为-a 的文件
 
 		struct_tm转换成格式化字符串
 			strftime();
-
+tail -f /tmp/out //动态查看out文件
 
 三、进程环境
+	1	main函数
+		int main(int arhc,char *argv[])
 
+	2	进程的终止
+	echo $?	//打印上一条语句的执行状态
+		正常终止：
+			从main函数返回
+			调用exit
+			调用_exit或_Exit
+			最后一个线程从其启动例程返回
+			最后一个线程调用pthread_exit;
+
+		异常终止：
+			调用abort //发送一个sigal abort信号给当前进程
+			接到一个信号并终止
+			最后一个线程对其取消请求作出响应
+		atexit();勾子函数 在一个进程正常终止之前会调用勾子函数释放所有该释放的内容
+	2	命令行参数的分析
+		getopt()
+
+		extern int optind表示读到了argv当中的哪一个下标
+
+		getopt_long() 
+	4	环境变量
+		KEY=VALUE
+		export //查看环境变量终端命令 
+	 	environ //存放所有环境变量的内容
+
+		getenv();//获取环境变量值
+		setenv();//改变或添加一个环境变量的值
+		putenv();
+	5	c程序的存储空间布局
+	6	库
+	7	函数跳转
+	8	资源的获取及控制
 
 
 

@@ -11,7 +11,7 @@ int main()
 	int count = 0;
 	time_t stamp;
 	struct tm *tm;
-	fopen(FNAME,"a+");
+	fp = fopen(FNAME,"a+");
 	if(fp == NULL)
 	{
 		perror("fopen()");
@@ -19,7 +19,7 @@ int main()
 	}
 	
 	while(fgets(buf,BUFSIZE,fp) != NULL)
-		count++
+		count++;
 	
 	while(1)
 	{
@@ -27,12 +27,13 @@ int main()
 		tm = localtime(&stamp);
 
 		fprintf(fp,"%-4d %d-%d-%d %d:%d:%d\n",++count,\
-				tm->tm_year,tm->tm_mon,tm->tm_mday,\
+				tm->tm_year+1900,tm->tm_mon+1,tm->tm_mday,\
 				tm->tm_hour,tm->tm_min,tm->tm_sec);
+		fflush(fp);
 		sleep(1);
 	}
 
-	fclose();
+	fclose(fp);
 	exit(0);
 }
 
