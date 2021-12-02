@@ -213,6 +213,7 @@ tail -f /tmp/out //动态查看out文件
 1.进程标识符pid
 	类型pid_t 传统意义上来讲是一个有符号的16位数,比较保险用long long类型打印出来
 	命令ps 打印出来当前进程的情况
+	ps axj 查看守护进程
 	ps axf	描述当前进程
 		PID进程号 TTY所占据终端 STAT 进程状态 TIME消耗时间 COMMAND哪个命令触发的
 	ps axm	以详细信息来进行查看
@@ -245,23 +246,127 @@ time ./primer0	> /dev/null //看做这件事情的时间,其他内容重定向�
 	waitid();
 	wait3();
 	wait4();
-4.exec函数族
+4.exec函数族	运行一个二进制的可执行的程序  用一个新的进程项来替换当前的进程项
+	execl();
+	execlp();
+	execle();
+	execv();
+	execvp();
+
+	注意: fflush();
 
 5.用户权限及组权限
+	u+s 如果一个可执行的文件有u+s的权限，那就意味着当别的用户在调用这个可执行文件的时候，它的身份会切换成当前这个二进制文件user的身份来执行
+	g+s 不管任何用户来调用这个二进制的可执行文件的时候，当前用户的身份就会切换成这个二进制文件同组用户的身份来执行
+	uid和gid有三种存储方式
+	real
+	effective exec通过它来判断身份,鉴定权限 
+	saved
+	
+	getuid();返回这个进程的实际用户ID real user ID
+	geteuid();	返回 effective user ID
 
+	getgid(); 返回real group ID
+	getegid();	返回effective group ID
+
+	setuid();
+	setgid();
+
+	交换，原子化的交换
+	setreuid();
+	setregit();
+	
+	分别用于更改有效用户ID和有效组ID
+	seteuid();
+	setegit();
 6.解释器文件
 
 
 7.system();
+	理解：fork+exec+wait封装
 
 
 8.进程会计
+	acct();  
 
 9.进程时间
+	times();获取进程时间
 
 10.守护进程
+	会话session ，标识sid
+	终端
+	setsid();来实现守护进程 创建一个会话并且设置进程组ID  如果当前调用它的进程不是一个进程组的leader，才会创建一个新的会话
+	getpgrp()；
+	getpgid();
+	setpgid();
+	单实例守护进程：锁文件/var/run/name.pid
+	每次开机启动，守护进程都会在/var/run目录下产生自己的一个锁文件，把当前这一次的进程编号写进去
+	启动脚本文件：/etc/rc*...
 
+tail -f 来动态查看文件当中的内容
 11.系统日志
+	syslogd 服务
+	openlog 
+	syslog
+	closelog 
+
+/**************************************************************
+					并发(信号、线程)
+
+同步
+异步
+
+异步事件的处理：查询法、通知法
+
+一.信号
+1.信号的概念
+	信号是软件中断
+	信号的响应依赖于中断 
+
+2.signal();
+	kill -l 查看当前信号
+	void (*signal(int signum,void (*func)(int)))(int);
+	信号会打断阻塞的系统调用。
+	 
+3.信号的不可靠
+4.可重入函数  后缀为_r的函数为可重入函数
+	第一次调用还没结束，就发生了第二次调用，但是不会出错
+	所有的系统调用都是可重入的，一部分库函数也是可重入的，如：memcpy	
+
+5.信号的响应过程
+	 mask	//信号屏蔽字，用来表示当前的信号的状态 一般情况下全部都是1
+	 pending	//是一个位图，用来记录当前这个进程收到哪些信号，一上来初始值为0	
+	 信号从收到到响应有一个不可避免的延迟
+	 思考 如何忽略掉一个信号的？
+	 	标准信号为什么要丢失
+		标准信号的响应没有严格的顺序
+
+
+6.常用函数
+	kill();  //给一个进程发信号
+	raise();	//自己给自己发信号,给当前进程或线程发信号
+	alarm();	//时间相关的
+	pause();	//等待一个信号,等待一个信号来打断它 
+	abort();
+	system();
+	sleep();
+
+7.信号集
+
+8.信号屏蔽字/pending集的处理
+
+9.扩展
+	sigsuspend();
+	sigaction();
+	setitimer();
+
+10.实时信号 
+
+
+2.线程
+
+
+
 
 
 
