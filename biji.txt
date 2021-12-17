@@ -422,16 +422,71 @@ tail -f 来动态查看文件当中的内容
 
        
 	3.线程同步
+		互斥量：
+			pthread_mutex_t
+			pthread_mutex_init();
+			pthread_mutex_destroy();
+			pthread_mutex_lock();
+			pthread_mutex_trylock();
+			pthread_mutex_unlock();
+
+		条件变量：
+			pthread_cond_t
+			pthread_cond_init();
+			pthread_cond_destory();
+
+			发消息
+				pthread_cond_broadcast();//把所有的等待都叫醒，发通知或者叫发消息来打断一个wait
+				pthread_cond_signal();//叫醒任意一个,打断任意一个wait
+
+			以下相当于解锁等待
+			pthread_cont_wait();
+			pthread_cond_timewait();
+
+
+		信号量：互斥量+条件变量
+		读写锁：相当于互斥量和信号量的一个综合使用
+			读锁相当于是共享锁
+			写锁相当于是互斥锁
+
+
+
+	动态模块的单次初始化函数
+		pthread_once
 
 	4.线程相关的属性
+		pthread_attr_init();
+		pthread_attr_destory();
+		pthread_attr_setstacksize();
 	 	线程同步的属性
+			互斥量属性：
+				pthread_mutexattr_init();
+				pthread_mutexattr_destroy();
+				pthread_mutexattr_getpshared(); //p代表跨进程起作用
+				pthread_mutexattr_setpshared();
+				clone();
+				pthread_mutexattr_gettype();
+				pthread_mutexattr_settype();
+				
+			条件变量属性：
+				pthread_condattr_init();
+				pthread_condattr_destroy();
+
+			读写锁属性:
+				
 
 
 	5.重入
+		多线程中的IO	
 		线程与信号
+			pthread_sigmask();
+			sigwait();
+			pthread_kill();
 		线程与fork
-	6.
-	
+			
+	openmp --> www.OpenMP.org
+		#pragma omp parallel //这句话作用的语句将会用多线程来实现，运行的时候自动检测当前有几个cpu，就自动开几个线程
+		#pragma omp parallel sections//以段落为并发的对象
 
 
 
@@ -445,6 +500,87 @@ tail -f 来动态查看文件当中的内容
 makefile 
 	编译选项 CFLAGS
 	链接选项 LDFLAGS
+
+
+
+/***********************************************************/
+						高级IO
+阻塞IO    
+	假错
+		EINGR 信号打断阻塞的系统调用
+非阻塞IO
+	假错
+		EAGAIN当操作方式是非阻塞方式有可能发生，这件事做了没有成功，比如读打印机，读时没有内容返回，做这件事情做了，没有成功
+
+
+
+补充:有限状态机编程
+1.非阻塞IO
+
+2.IO多路转接
+
+3.其他读写函数
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+       	
+2.IO多路转接
+
+3.其他读写函数
+
+4.存储映射IO
+
+5.文件锁
+
+
+
+
+
+
+
+
+
 
 
 
