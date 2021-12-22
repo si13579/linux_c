@@ -5,127 +5,20 @@
 #include<sys/stat.h>
 #include<fcntl.h>
 #include<errno.h>
+#include<string.h>
 
+#include "relayer.h"
 
-#define BUFSIZE	1024
 #define TTY1	"/dev/tty11"
 #define TTY2	"/dev/tty12"
-
-enum
-{
-	STATE_R = 1, //读态
-	STATE_W,	//写态
-	STATE_Ex,	//异常态
-	STATE_T		//终止态
-};
-
-struct fsm_st //有限状态机
-{
-	int state;//状态
-	int sfd; //源文件文件描述符
-	int dfd; //目标文件描述符
-	int len;
-	int pos;
-	char buf[BUFSIZE];
-	char *errstr; //出错的字符串
-};
-
-static void fsm_driver(struct fsm_st *fsm) //实现状态机的推动
-{
-	int ret;
-	switch(fsm->state)
-	{
-		case STATE_R: //读态
-			fsm->len = read(fsm->sfd,fsm->buf,BUFSIZE);
-			if(fsm->len == 0) //读完结束
-				fsm->state = STATE_T;
-			else if(fsm->len < 0) //失败
-			{
-				if(errno == EAGAIN) //假错没读到
-					fsm->state = STATE_R;
-				else 		//真错，异常终止
-				{
-					fsm->errstr = "read()";
-					fsm->state = STATE_Ex;
-				}
-			}
-			else //读到去写态
-			{
-				fsm->pos = 0;
-				fsm->state = STATE_W;
-			}
-
-			break;
-		case STATE_W:
-			ret = write(fsm->dfd,fsm->buf+fsm->pos,fsm->len);
-			if(ret < 0) //失败
-			{
-				if(errno = EAGAIN)
-					fsm->state = STATE_W;
-				else
-				{
-					fsm->errstr = "write()";
-					fsm->state = STATE_Ex;
-				}
-			}
-			else
-			{
-				fsm->pos += ret;
-				fsm->len -= ret;
-				if(fsm->len == 0) //写完去读态
-					fsm->state = STATE_R;
-				else	//没写完继续去写
-					fsm->state = STATE_W;
-			}
-			break;
-		case STATE_Ex:
-			perror(fsm->errstr);
-			fsm->state = STATE_T;
-			break;
-		case STATE_T:
-			//do something
-			break;
-		default:
-			abort();
-			break;
-	}	
-
-}
-
-
-static void relay(int fd1,int fd2)
-{
-	int fd1_save,fd2_save;
-	struct fsm_st fsm12,fsm21;//读左写右，读右写左
-	//保证是以非阻塞方式实现的
-	fd1_save = fcntl(fd1,F_GETFL); //获取文件属性
-	fcntl(fd1,F_SETFL,fd1_save|O_NONBLOCK);
-
-	fd2_save = fcntl(fd2,F_SETFL);
-	fcntl(fd2,F_SETFL,fd2_save|O_NONBLOCK);
-
-	fsm12.state = STATE_R;
-	fsm12.sfd = fd1;
-	fsm12.dfd = fd2;
-	fsm21.state = STATE_R;
-	fsm21.sfd = fd2;
-	fsm21.dfd = fd1;
-
-	while(fsm12.state != STATE_T || fsm21.state != STATE_T)
-	{
-		fsm_driver(&fsm12);
-		fsm_driver(&fsm21);
-	}
-	fcntl(fd1,F_SETFL,fd1_save); //恢复文件属性
-	fcntl(fd2,F_SETFL,fd2_save);
-
-
-}
+#define	TTY3	"/dev/tty10"
+#define	TTY4	"/dev/tty9"
 
 
 int main()
 {
-	int fd1,fd2;
+	int fd1,fd2,fd3,fd4;
+	int job1,job2;
 	fd1 = open(TTY1,O_RDWR);
 	if(fd1 < 0)
 	{
@@ -141,10 +34,42 @@ int main()
 	}
 	write(fd2,"TTY2\n",5);
 
-	relay(fd1,fd2);
+	job1 = rel_addjob(fd1,fd2);
+	if(job1 < 0)
+	{
+		fprintf(stderr,"rel_addjob():%s\n",strerror(-job1));
+		exit(1);
+	}
+
+	fd3 = open(TTY3,O_RDWR);
+	if(fd3 < 0)
+	{
+		perror("open()");
+		exit(1);
+	}
+	write(fd3,"TTY3\n",5);
+
+	fd4 = open(TTY4,O_RDWR);
+	if(fd4 < 0)
+	{
+		perror("open()");
+		exit(1);
+	}
+	write(fd4,"TTY4\n",5);
+
+	job2 = rel_addjob(fd3,fd4);
+	if(job2 < 0)
+	{
+		fprintf(stderr,"rel_addjob():%s\n",strerror(-job2));
+		exit(1);
+	}
+
+	while(1)
+		pause();
 	close(fd2);
 	close(fd1);
-
+	close(fd3);
+	close(fd4);
 
 
 
