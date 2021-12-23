@@ -532,10 +532,18 @@ makefile
 			在文件描述符的基础上来等待一些事件
 	epoll();	//linux从poll的基础上做的方言，企图去简化用户，不可移植的
 3.其他读写函数
-
+	readv();
+	writev();   //读写碎片地址内容
+	readn();
+	writen();
 4.存储映射IO
+	mmap();
+	munmap();
 
 5.文件锁
+	fcntl();//非阻塞
+	lockf();
+	flock();
 
 
 
