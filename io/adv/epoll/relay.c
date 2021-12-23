@@ -5,7 +5,8 @@
 #include<sys/stat.h>
 #include<fcntl.h>
 #include<errno.h>
-#include<sys/select.h>
+#include<sys/epoll.h>
+
 
 #define BUFSIZE	1024
 #define TTY1	"/dev/tty11"
@@ -100,9 +101,10 @@ static int max(int a,int b)
 
 static void relay(int fd1,int fd2)
 {
+	int epfd;
 	int fd1_save,fd2_save;
 	struct fsm_st fsm12,fsm21;//读左写右，读右写左
-	fd_set rset,wset;
+	struct epoll_event ev;
 	//保证是以非阻塞方式实现的
 	fd1_save = fcntl(fd1,F_GETFL); //获取文件属性
 	fcntl(fd1,F_SETFL,fd1_save|O_NONBLOCK);
@@ -117,42 +119,66 @@ static void relay(int fd1,int fd2)
 	fsm21.sfd = fd2;
 	fsm21.dfd = fd1;
 
+	epfd = epoll_create(10);
+	if(epfd < 0)
+	{
+		perror("epoll_create()\n");
+		exit(1);
+	}
+
+	ev.events = 0;
+	ev.data.fd = fd1;
+	epoll_ctl(epfd,EPOLL_CTL_ADD,fd1,&ev);
+
+	ev.events = 0;
+	ev.data.fd = fd2;
+	epoll_ctl(epfd,EPOLL_CTL_ADD,fd2,&ev);
+
 	while(fsm12.state != STATE_T || fsm21.state != STATE_T)
 	{
 		//布置监视任务
-		FD_ZERO(&rset);
-		FD_ZERO(&wset);
+		ev.data.fd = fd1;
+		ev.events = 0;
 		if(fsm12.state == STATE_R)
-			FD_SET(fsm12.sfd,&rset);
-		if(fsm12.state == STATE_W)
-			FD_SET(fsm12.dfd,&wset);
-		if(fsm21.state == STATE_R)
-			FD_SET(fsm21.sfd,&rset);
+			ev.events |= EPOLLIN;
 		if(fsm21.state == STATE_W)
-			FD_SET(fsm21.dfd,&wset);
+			ev.events |= EPOLLOUT;
+		epoll_ctl(epfd,EPOLL_CTL_MOD,fd1,&ev);
+
+		ev.data.fd = fd2;
+		ev.events = 0;
+		if(fsm12.state == STATE_W)
+			ev.events |= EPOLLOUT;
+		if(fsm21.state == STATE_R)
+			ev.events |= EPOLLIN;
+			
 		//监视
 		if(fsm12.state < STATE_AUTO || fsm21.state < STATE_AUTO)
 		{
-		if(select(max(fd1,fd2)+1,&rset,&wset,NULL,NULL) < 0) 
+		while(epoll_wait(epfd,&ev,1,-1) < 0) 
 		{
 			if(errno == EINTR)
 				continue;
-			perror("select()");
+			perror("epoll_wait()");
 			exit(1);
 		}
 		}
 		//查看监视结果
 
 		//根据监视结构来有条件的推动状态机
-		if(FD_ISSET(fd1,&rset) || FD_ISSET(fd2,&wset) || fsm12.state > STATE_AUTO)
+		if( ev.data.fd == fd1 && ev.events & EPOLLIN \
+				||ev.data.fd == fd2 && ev.events & EPOLLOUT \
+				|| fsm12.state > STATE_AUTO)
 			fsm_driver(&fsm12);
-		if(FD_ISSET(fd2,&rset) || FD_ISSET(fd1,&wset) || fsm21.state > STATE_AUTO)
+		if( ev.data.fd = fd2 && ev.events & EPOLLIN \
+				|| ev.data.fd == fd1 && ev.events & EPOLLOUT \
+				|| fsm21.state > STATE_AUTO)
 			fsm_driver(&fsm21);
 	}
 	fcntl(fd1,F_SETFL,fd1_save); //恢复文件属性
 	fcntl(fd2,F_SETFL,fd2_save);
 
-
+	close(epfd);
 }
 
 
