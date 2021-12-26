@@ -544,63 +544,51 @@ makefile
 	fcntl();//非阻塞
 	lockf();
 	flock();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
  
  
        	
 2.IO多路转接
 
 3.其他读写函数
-
+	writev();
+	readn();
+	writen();
 4.存储映射IO
-
+	mmap();
+	munmap();
 5.文件锁
+	fcntl();
+	lockf();
+	flock();
 
 
+/************************
+				进程间通信
+1	管道
+	内核提供，单工，自同步机制
+	匿名管道
+		pipe();
+	命名管道
+		mkfifo();
 
+2	XSI		-> SysV
+	IPC	->	Inter-Process Communication	//进程间通信
+	主动端：先发包的一方
+	被动端：先收包的一方 （先运行）	
+	创建xxxget  使用xxxop  控制xxxctl
+	xxx-> msg sem shm
 
+	key:ftok();
 
-
-
+	Message Queues //消息队列
+	msgget();
+	msgop();
+	msgctl();	
+	
+	Semaphore Arrays 	//信号量数组
+	
+	Shared Memory Segments	//共享内存
+3	网络套接字socket
 
 
 
